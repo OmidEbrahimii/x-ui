@@ -280,7 +280,7 @@ func (t *Tgbot) getServerUsage() string {
 		logger.Error("net.Interfaces failed, err:", err.Error())
 		info += "<b>🌐 آی پی : ناشناس</b>\r\n \r\n"
 	} else {
-		for i := 0; i <b len(netInterfaces); i++ {
+		for i := 0; i <len(netInterfaces); i++ {
 			if (netInterfaces[i].Flags & net.FlagUp) != 0 {
 				addrs, _ := netInterfaces[i].Addrs()
 
