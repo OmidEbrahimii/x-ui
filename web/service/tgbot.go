@@ -124,8 +124,9 @@ func (t *Tgbot) answerCommand(message *tgbotapi.Message, chatId int64, isAdmin b
 		msg = "<b>سلام</b> <i>" + message.From.FirstName + "</i> <b>عزیز</b>👋"
 		if isAdmin {
 			hostname, _ := os.Hostname()
-			msg += "\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>\n\n<b>♻️ لطفا انتخاب کنید : </b>"
+			msg += "\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>"
 		}
+		msg += "\n\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>\n<b>♻️ لطفا انتخاب کنید : </b>"
 	case "status":
 		msg = "<b>👀 من هنوز زنده م و دارم خدمات ارائه میدم</b>"
 	case "usage":
@@ -280,7 +281,7 @@ func (t *Tgbot) getServerUsage() string {
 		logger.Error("net.Interfaces failed, err:", err.Error())
 		info += "<b>🌐 آی پی : ناشناس</b>\r\n \r\n"
 	} else {
-		for i := 0; i <len(netInterfaces); i++ {
+		for i := 0; i <b len(netInterfaces); i++ {
 			if (netInterfaces[i].Flags & net.FlagUp) != 0 {
 				addrs, _ := netInterfaces[i].Addrs()
 
