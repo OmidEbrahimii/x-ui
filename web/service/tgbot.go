@@ -123,8 +123,7 @@ func (t *Tgbot) answerCommand(message *tgbotapi.Message, chatId int64, isAdmin b
 	case "start":
 		msg = "<b>سلام</b> <i>" + message.From.FirstName + "</i> <b>عزیز</b>👋"
 		if isAdmin {
-			hostname, _ := os.Hostname()
-			msg += "\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>"
+			msg += "\n<b>🤖 به مدیریت ربات استعلام حجم وی تو ری خوش آمدید.</b>"
 		}
 		msg += "\n\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>\n<b>♻️ لطفا انتخاب کنید : </b>"
 	case "status":
