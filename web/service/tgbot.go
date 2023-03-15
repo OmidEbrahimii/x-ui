@@ -141,7 +141,7 @@ func (t *Tgbot) answerCommand(message *tgbotapi.Message, chatId int64, isAdmin b
 }
 
 func (t *Tgbot) aswerChat(message string, chatId int64, isAdmin bool) {
-	t.SendAnswer(chatId, "متوجه نشدم!! 🕵️‍♂️", isAdmin)
+	t.SendAnswer(chatId, "<b>🕵️‍♂️متوجه نشدم!!!!!</b>\n<b>♻️ از منو زیر انتخاب کنید : </b>", isAdmin)
 }
 
 func (t *Tgbot) asnwerCallback(callbackQuery *tgbotapi.CallbackQuery, isAdmin bool) {
@@ -187,15 +187,25 @@ func (t *Tgbot) SendAnswer(chatId int64, msg string, isAdmin bool) {
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("🔍 سرویس ها", "inbounds"),
-			tgbotapi.NewInlineKeyboardButtonData("🔚 رو به اتمام", "exhausted_soon"),
+			tgbotapi.NewInlineKeyboardButtonData("👤 اکانت ها", "exhausted_soon"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("📜 دستورات", "commands"),
+			tgbotapi.NewInlineKeyboardButtonURL("🚀 تست سرعت", "https://pcmag.speedtestcustom.com"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("👨🏻‍💻 برنامه نویس 👨🏻‍💻", "https://t.me/MR_PROGR4MMER"),
 		),
 	)
 	var numericKeyboardClient = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("♻️ استعلام حجم ♻️", "client_traffic"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("🚀 تست سرعت", "https://pcmag.speedtestcustom.com"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("☎️ پشتیبان ☎️", "https://t.me/mohammadrezach1376"),
 		),
 	)
 	msgConfig := tgbotapi.NewMessage(chatId, msg)
@@ -295,7 +305,7 @@ func (t *Tgbot) getServerUsage() string {
 				}
 			}
 		}
-		info += fmt.Sprintf("<b>🌐آی پی : </b>%s\r\n<b>🌐آی پی v6 : </b>%s\r\n", ip, ipv6)
+		info += fmt.Sprintf("<b>🌐آی پی : </b>%s\r\n<b>🌐آی پی ورژن 6 : </b>%s\r\n", ip, ipv6)
 	}
 
 	// get latest status of server
@@ -303,8 +313,8 @@ func (t *Tgbot) getServerUsage() string {
 	info += fmt.Sprintf("<b>🔌 آپتایم سرور: </b>%d روز\r\n", int(t.lastStatus.Uptime/86400))
 	info += fmt.Sprintf("<b>📈 سرعت بارگذاری سرور: </b>%.1f, %.1f, %.1f\r\n", t.lastStatus.Loads[0], t.lastStatus.Loads[1], t.lastStatus.Loads[2])
 	info += fmt.Sprintf("<b>📋 وضعیت رام سرور : </b>%s/%s\r\n", common.FormatTraffic(int64(t.lastStatus.Mem.Current)), common.FormatTraffic(int64(t.lastStatus.Mem.Total)))
-	info += fmt.Sprintf("<b>🔹 تعداد TCP : </b>%d\r\n", t.lastStatus.TcpCount)
-	info += fmt.Sprintf("<b>🔸 تعداد UDP : </b>%d\r\n", t.lastStatus.UdpCount)
+	info += fmt.Sprintf("<b>🔹 تعداد تی سی پی : </b>%d\r\n", t.lastStatus.TcpCount)
+	info += fmt.Sprintf("<b>🔸 تعداد یو دی پی : </b>%d\r\n", t.lastStatus.UdpCount)
 	info += fmt.Sprintf("<b>🚦 کل حجم مصرفی : </b>%s (↑%s,↓%s)\r\n", common.FormatTraffic(int64(t.lastStatus.NetTraffic.Sent+t.lastStatus.NetTraffic.Recv)), common.FormatTraffic(int64(t.lastStatus.NetTraffic.Sent)), common.FormatTraffic(int64(t.lastStatus.NetTraffic.Recv)))
 	info += fmt.Sprintf("<b>ℹ وضعیت پنل : </b>%s", t.lastStatus.Xray.State)
 
@@ -466,7 +476,7 @@ func (t *Tgbot) getExhausted() string {
 			disabledInbounds = append(disabledInbounds, *inbound)
 		}
 	}
-	output += fmt.Sprintf("<b>🔍 آمار کل سرویس ها : </b>\r\n<b>🛑 تعداد غیرفعال : </b>%d\r\n<b>🔜 تعداد رو به اتمام : </b>%d\r\n \r\n", len(disabledInbounds), len(exhaustedInbounds))
+	output += fmt.Sprintf("<b>🔍 آمار کل سرویس ها : </b>\r\n<b>🛑 تعداد غیرفعال : </b>%d\r\n<b>👤 تعداد اکانت ها : </b>%d\r\n \r\n", len(disabledInbounds), len(exhaustedInbounds))
 	if len(disabledInbounds)+len(exhaustedInbounds) > 0 {
 		output += "📚 لیست سرویس ها : \r\n"
 		for _, inbound := range exhaustedInbounds {
@@ -478,7 +488,7 @@ func (t *Tgbot) getExhausted() string {
 			}
 		}
 	}
-	output += fmt.Sprintf("<b>🔍 آمار کل کاربران : </b>\r\n<b>🛑 تعداد غیرفعال : </b>%d\r\n<b>🔜 تعداد رو به اتمام : </b>%d\r\n \r\n", len(disabledClients), len(exhaustedClients))
+	output += fmt.Sprintf("<b>🔍 آمار کل کاربران : </b>\r\n<b>🛑 تعداد غیرفعال : </b>%d\r\n<b>👤 تعداد اکانت ها : </b>%d\r\n \r\n", len(disabledClients), len(exhaustedClients))
 	if len(disabledClients)+len(exhaustedClients) > 0 {
 		output += "<b>📝 لیست کاربران : </b>\r\n"
 		for _, traffic := range exhaustedClients {
