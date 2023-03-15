@@ -124,9 +124,8 @@ func (t *Tgbot) answerCommand(message *tgbotapi.Message, chatId int64, isAdmin b
 		msg = "<b>سلام</b> <i>" + message.From.FirstName + "</i> <b>عزیز</b>👋"
 		if isAdmin {
 			hostname, _ := os.Hostname()
-			msg += "\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>"
+			msg += "\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>\n\n<b>♻️ لطفا انتخاب کنید : </b>"
 		}
-		msg += "\n\n<b>♻️ لطفا انتخاب کنید : </b>"
 	case "status":
 		msg = "<b>👀 من هنوز زنده م و دارم خدمات ارائه میدم</b>"
 	case "usage":
@@ -177,6 +176,8 @@ func checkAdmin(tgId int64) bool {
 	}
 	return false
 }
+
+
 
 func (t *Tgbot) SendAnswer(chatId int64, msg string, isAdmin bool) {
 	var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
