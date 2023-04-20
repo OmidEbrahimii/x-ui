@@ -69,7 +69,7 @@ func (t *Tgbot) Start() error {
 
 	// listen for TG bot income messages
 	if !isRunning {
-		logger.Info("Starting Telegram receiver ...")
+		logger.Info("✅ ربات شروع به کار کرد.")
 		go t.OnReceive()
 		isRunning = true
 	}
@@ -83,7 +83,7 @@ func (t *Tgbot) IsRunnging() bool {
 
 func (t *Tgbot) Stop() {
 	bot.StopReceivingUpdates()
-	logger.Info("Stop Telegram receiver ...")
+	logger.Info("⛔️ ربات متوقف شد.")
 	isRunning = false
 	adminIds = nil
 }
@@ -115,34 +115,25 @@ func (t *Tgbot) answerCommand(message *tgbotapi.Message, chatId int64, isAdmin b
 	// Extract the command from the Message.
 	switch message.Command() {
 	case "help":
-		msg = "This bot is providing you some specefic data from the server.\n\n Please choose:"
+		msg = "<b>✅ با این ربات خیلی راحت می تونی حجم مصرفی اکانتت رو استعلام کنی!</b>\n\n <b>♻️ لطفا انتخاب کنید : </b>"
+	case "creator":
+		msg = "<b>👨🏻‍💻 این ربات توسط @MR_PROGR4MMER ساخته شده است، درصورت داشتن هر گونه مشکل پیام دهید.</b>"
 	case "start":
-		msg = "Hello <i>" + message.From.FirstName + "</i> 👋"
+		msg = "<b>سلام</b> <i>" + message.From.FirstName + "</i> <b>عزیز</b>👋"
 		if isAdmin {
-			hostname, _ := os.Hostname()
-			msg += "\nWelcome to <b>" + hostname + "</b> management bot"
+			msg += "\n<b>🧑🏻‍🔧 مدیریت دست شماست :)</b>"
 		}
-		msg += "\n\nI can do some magics for you, please choose:"
+		msg += "\n\n<b>🤖 به ربات استعلام حجم وی تو ری خوش آمدید.</b>\n<b>♻️ لطفا انتخاب کنید : </b>"
 	case "status":
-		msg = "bot is ok ✅"
+		msg = "<b>👀 من هنوز زنده م و دارم خدمات ارائه میدم</b>"
 	case "usage":
-		if len(message.CommandArguments()) > 1 {
-			if isAdmin {
-				t.searchClient(chatId, message.CommandArguments())
-			} else {
-				t.searchForClient(chatId, message.CommandArguments())
-			}
-		} else {
-			msg = "❗Please provide a text for search!"
-		}
-	case "inbound":
 		if isAdmin {
-			t.searchInbound(chatId, message.CommandArguments())
+			t.searchClient(chatId, message.CommandArguments())
 		} else {
-			msg = "❗ Unknown command"
+			msg = "<b>❌ شما مجاز به این عملیات نمی باشید 👮‍♀️✋🏻</b>"
 		}
 	default:
-		msg = "❗ Unknown command"
+		msg = "<b>❌ دستور وارد شده درست نمی باشد لطفا بر روی دستور زیر کلیک نمایید.</b> \n /help - /help - /help"
 	}
 	t.SendAnswer(chatId, msg, isAdmin)
 }
@@ -167,9 +158,9 @@ func (t *Tgbot) asnwerCallback(callbackQuery *tgbotapi.CallbackQuery, isAdmin bo
 	case "client_traffic":
 		t.getClientUsage(callbackQuery.From.ID, callbackQuery.From.UserName)
 	case "client_commands":
-		t.SendMsgToTgbot(callbackQuery.From.ID, "To search for statistics, just use folowing command:\r\n \r\n<code>/usage [UID|Password]</code>\r\n \r\nUse UID for vmess/vless and Password for Trojan.")
+		t.SendMsgToTgbot(callbackQuery.From.ID, "📌 برای اطلاع از وضعیت اکانت، کافیه اسم را با دستور زیر به ربات بفرستید : \r\n \r\n<code>/usage نام اکانت</code>")
 	case "commands":
-		t.SendMsgToTgbot(callbackQuery.From.ID, "Search for a client email:\r\n<code>/usage email</code>\r\n \r\nSearch for inbounds (with client stats):\r\n<code>/inbound [remark]</code>")
+		t.SendMsgToTgbot(callbackQuery.From.ID, "📌 برای اطلاع از وضعیت سرویس، کافیه اسم را با دستور زیر به ربات بفرستید : \r\n \r\n<code>/usage نام سرویس</code>")
 	}
 }
 
@@ -185,21 +176,30 @@ func checkAdmin(tgId int64) bool {
 func (t *Tgbot) SendAnswer(chatId int64, msg string, isAdmin bool) {
 	var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Server Usage", "get_usage"),
-			tgbotapi.NewInlineKeyboardButtonData("Get DB Backup", "get_backup"),
+			tgbotapi.NewInlineKeyboardButtonData("📊 اطلاعات سرور", "get_usage"),
+			tgbotapi.NewInlineKeyboardButtonData("📤 بکاپ دیتابیس", "get_backup"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Get Inbounds", "inbounds"),
-			tgbotapi.NewInlineKeyboardButtonData("Deplete soon", "deplete_soon"),
+			tgbotapi.NewInlineKeyboardButtonData("🔍 سرویس ها", "inbounds"),
+			tgbotapi.NewInlineKeyboardButtonData("👤 اکانت ها", "exhausted_soon"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Commands", "commands"),
+			tgbotapi.NewInlineKeyboardButtonData("📜 دستورات", "commands"),
+			tgbotapi.NewInlineKeyboardButtonURL("🚀 تست سرعت", "https://pcmag.speedtestcustom.com"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("👨🏻‍💻 برنامه نویس 👨🏻‍💻", "https://t.me/MR_PROGR4MMER"),
 		),
 	)
 	var numericKeyboardClient = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Get Usage", "client_traffic"),
-			tgbotapi.NewInlineKeyboardButtonData("Commands", "client_commands"),
+			tgbotapi.NewInlineKeyboardButtonData("♻️ استعلام حجم ♻️", "client_traffic"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("🚀 تست سرعت", "https://pcmag.speedtestcustom.com"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("☎️ پشتیبان ☎️", "https://t.me/mohammadrezach1376"),
 		),
 	)
 	msgConfig := tgbotapi.NewMessage(chatId, msg)
@@ -211,7 +211,7 @@ func (t *Tgbot) SendAnswer(chatId int64, msg string, isAdmin bool) {
 	}
 	_, err := bot.Send(msgConfig)
 	if err != nil {
-		logger.Warning("Error sending telegram message :", err)
+		logger.Warning("خطا در ارتباط با تلگرام :", err)
 	}
 }
 
@@ -238,7 +238,7 @@ func (t *Tgbot) SendMsgToTgbot(tgid int64, msg string) {
 		info.ParseMode = "HTML"
 		_, err := bot.Send(info)
 		if err != nil {
-			logger.Warning("Error sending telegram message :", err)
+			logger.Warning("خطا در ارتباط با تلگرام :", err)
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -253,7 +253,7 @@ func (t *Tgbot) SendMsgToTgbotAdmins(msg string) {
 func (t *Tgbot) SendReport() {
 	runTime, err := t.settingService.GetTgbotRuntime()
 	if err == nil && len(runTime) > 0 {
-		t.SendMsgToTgbotAdmins("🕰 Scheduled reports: " + runTime + "\r\nDate-Time: " + time.Now().Format("2006-01-02 15:04:05"))
+		t.SendMsgToTgbotAdmins("<b>🔁 وضعیت کرون جاب : </b>" + runTime + "\r\n<b>⏰ تاریخ و ساعت : </b>" + time.Now().Format("2006-01-02 15:04:05"))
 	}
 	info := t.getServerUsage()
 	t.SendMsgToTgbotAdmins(info)
@@ -275,15 +275,15 @@ func (t *Tgbot) getServerUsage() string {
 		logger.Error("get hostname error:", err)
 		name = ""
 	}
-	info = fmt.Sprintf("💻 Hostname: %s\r\n", name)
-	info += fmt.Sprintf("🚀X-UI Version: %s\r\n", config.GetVersion())
+	info = fmt.Sprintf("<b>💻 نام سرور : </b>%s\r\n", name)
+	info += fmt.Sprintf("🚀 ورژن پنل: %s\r\n", config.GetVersion())
 	//get ip address
 	var ip string
 	var ipv6 string
 	netInterfaces, err := net.Interfaces()
 	if err != nil {
 		logger.Error("net.Interfaces failed, err:", err.Error())
-		info += "🌐 IP: Unknown\r\n \r\n"
+		info += "<b>🌐 آی پی : ناشناس</b>\r\n \r\n"
 	} else {
 		for i := 0; i < len(netInterfaces); i++ {
 			if (netInterfaces[i].Flags & net.FlagUp) != 0 {
@@ -300,18 +300,18 @@ func (t *Tgbot) getServerUsage() string {
 				}
 			}
 		}
-		info += fmt.Sprintf("🌐IP: %s\r\n🌐IPv6: %s\r\n", ip, ipv6)
+		info += fmt.Sprintf("<b>🌐آی پی : </b>%s\r\n<b>🌐آی پی ورژن 6 : </b>%s\r\n", ip, ipv6)
 	}
 
 	// get latest status of server
 	t.lastStatus = t.serverService.GetStatus(t.lastStatus)
-	info += fmt.Sprintf("🔌Server Uptime: %d days\r\n", int(t.lastStatus.Uptime/86400))
-	info += fmt.Sprintf("📈Server Load: %.1f, %.1f, %.1f\r\n", t.lastStatus.Loads[0], t.lastStatus.Loads[1], t.lastStatus.Loads[2])
-	info += fmt.Sprintf("📋Server Memory: %s/%s\r\n", common.FormatTraffic(int64(t.lastStatus.Mem.Current)), common.FormatTraffic(int64(t.lastStatus.Mem.Total)))
-	info += fmt.Sprintf("🔹TcpCount: %d\r\n", t.lastStatus.TcpCount)
-	info += fmt.Sprintf("🔸UdpCount: %d\r\n", t.lastStatus.UdpCount)
-	info += fmt.Sprintf("🚦Traffic: %s (↑%s,↓%s)\r\n", common.FormatTraffic(int64(t.lastStatus.NetTraffic.Sent+t.lastStatus.NetTraffic.Recv)), common.FormatTraffic(int64(t.lastStatus.NetTraffic.Sent)), common.FormatTraffic(int64(t.lastStatus.NetTraffic.Recv)))
-	info += fmt.Sprintf("ℹXray status: %s", t.lastStatus.Xray.State)
+	info += fmt.Sprintf("<b>🔌 آپتایم سرور: </b>%d روز\r\n", int(t.lastStatus.Uptime/86400))
+	info += fmt.Sprintf("<b>📈 سرعت بارگذاری سرور: </b>%.1f, %.1f, %.1f\r\n", t.lastStatus.Loads[0], t.lastStatus.Loads[1], t.lastStatus.Loads[2])
+	info += fmt.Sprintf("<b>📋 وضعیت رام سرور : </b>%s/%s\r\n", common.FormatTraffic(int64(t.lastStatus.Mem.Current)), common.FormatTraffic(int64(t.lastStatus.Mem.Total)))
+	info += fmt.Sprintf("<b>🔹 تعداد تی سی پی : </b>%d\r\n", t.lastStatus.TcpCount)
+	info += fmt.Sprintf("<b>🔸 تعداد یو دی پی : </b>%d\r\n", t.lastStatus.UdpCount)
+	info += fmt.Sprintf("<b>🚦 کل حجم مصرفی : </b>%s (↑%s,↓%s)\r\n", common.FormatTraffic(int64(t.lastStatus.NetTraffic.Sent+t.lastStatus.NetTraffic.Recv)), common.FormatTraffic(int64(t.lastStatus.NetTraffic.Sent)), common.FormatTraffic(int64(t.lastStatus.NetTraffic.Recv)))
+	info += fmt.Sprintf("<b>ℹ وضعیت پنل : </b>%s", t.lastStatus.Xray.State)
 
 	return info
 }
@@ -329,13 +329,13 @@ func (t *Tgbot) UserLoginNotify(username string, ip string, time string, status 
 		return
 	}
 	if status == LoginSuccess {
-		msg = fmt.Sprintf("✅ Successfully logged-in to the panel\r\nHostname:%s\r\n", name)
+		msg = fmt.Sprintf("<b>✅با موفقیت به پنل وارد شدید.\r\n📝 نام سرور :</b>%s\r\n", name)
 	} else if status == LoginFail {
-		msg = fmt.Sprintf("❗ Login to the panel was unsuccessful\r\nHostname:%s\r\n", name)
+		msg = fmt.Sprintf("<b>❌ورود به پنل ناموفق بود.\r\n📝 نام سرور :</b>%s\r\n", name)
 	}
-	msg += fmt.Sprintf("⏰ Time:%s\r\n", time)
-	msg += fmt.Sprintf("🆔 Username:%s\r\n", username)
-	msg += fmt.Sprintf("🌐 IP:%s\r\n", ip)
+	msg += fmt.Sprintf("<b>⏰ ساعت : </b>%s\r\n", time)
+	msg += fmt.Sprintf("<b>👤 یوزرنیم وارد شده : </b>%s\r\n", username)
+	msg += fmt.Sprintf("<b>🖥 آی پی دستگاه : </b>%s\r\n", ip)
 	t.SendMsgToTgbotAdmins(msg)
 }
 
@@ -345,17 +345,17 @@ func (t *Tgbot) getInboundUsages() string {
 	inbouds, err := t.inboundService.GetAllInbounds()
 	if err != nil {
 		logger.Warning("GetAllInbounds run failed:", err)
-		info += "❌ Failed to get inbounds"
+		info += "❌ خطا در دریافت سرویس ها"
 	} else {
 		// NOTE:If there no any sessions here,need to notify here
 		// TODO:Sub-node push, automatic conversion format
 		for _, inbound := range inbouds {
-			info += fmt.Sprintf("📍Inbound:%s\r\nPort:%d\r\n", inbound.Remark, inbound.Port)
-			info += fmt.Sprintf("Traffic: %s (↑%s,↓%s)\r\n", common.FormatTraffic((inbound.Up + inbound.Down)), common.FormatTraffic(inbound.Up), common.FormatTraffic(inbound.Down))
+			info += fmt.Sprintf("<b>📍اسم سرویس : </b>%s\r\n<b>🔢 پورت : </b>%d\r\n", inbound.Remark, inbound.Port)
+			info += fmt.Sprintf("<b>🧮 کل حجم مصرفی : </b>%s (↑%s,↓%s)\r\n", common.FormatTraffic((inbound.Up + inbound.Down)), common.FormatTraffic(inbound.Up), common.FormatTraffic(inbound.Down))
 			if inbound.ExpiryTime == 0 {
-				info += "Expire date: ♾ Unlimited\r\n \r\n"
+				info += "<b>📅 تاریخ انقضا : ♾ نامحدود </b>\r\n \r\n"
 			} else {
-				info += fmt.Sprintf("Expire date:%s\r\n \r\n", time.Unix((inbound.ExpiryTime/1000), 0).Format("2006-01-02 15:04:05"))
+				info += fmt.Sprintf("<b>📅 تاریخ انقضا : </b>%s\r\n \r\n", time.Unix((inbound.ExpiryTime/1000), 0).Format("2006-01-02 15:04:05"))
 			}
 		}
 	}
@@ -364,74 +364,74 @@ func (t *Tgbot) getInboundUsages() string {
 
 func (t *Tgbot) getClientUsage(chatId int64, tgUserName string) {
 	if len(tgUserName) == 0 {
-		msg := "Your configuration is not found!\nYou should configure your telegram username and ask Admin to add it to your configuration."
+		msg := "<b>‼️ هیچ سروری برای شما پیدا نشد!\n✅ لطفا به پشتیبان اطلاع دهید تا آیدی شما را به کانفیگتون اضافه کند.</b>"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	traffics, err := t.inboundService.GetClientTrafficTgBot(tgUserName)
 	if err != nil {
 		logger.Warning(err)
-		msg := "❌ Something went wrong!"
+		msg := "‼️ خطایی رخ داد!"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	if len(traffics) == 0 {
-		msg := "Your configuration is not found!\nPlease ask your Admin to use your telegram username in your configuration(s).\n\nYour username: <b>@" + tgUserName + "</b>"
+		msg := "<b>‼️ هیچ سروری برای شما پیدا نشد!\n✅ لطفا به پشتیبان اطلاع دهید تا آیدی شما را به کانفیگتون اضافه کند.\n\n🆔 آید شما : </b><b>@" + tgUserName + "</b>"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	for _, traffic := range traffics {
 		expiryTime := ""
 		if traffic.ExpiryTime == 0 {
-			expiryTime = "♾Unlimited"
+			expiryTime = "♾ نامحدود"
 		} else if traffic.ExpiryTime < 0 {
-			expiryTime = fmt.Sprintf("%d days", traffic.ExpiryTime/-86400000)
+			expiryTime = fmt.Sprintf("%d روز", traffic.ExpiryTime/-86400000)
 		} else {
 			expiryTime = time.Unix((traffic.ExpiryTime / 1000), 0).Format("2006-01-02 15:04:05")
 		}
 		total := ""
 		if traffic.Total == 0 {
-			total = "♾Unlimited"
+			total = "♾ نامحدود"
 		} else {
 			total = common.FormatTraffic((traffic.Total))
 		}
-		output := fmt.Sprintf("💡 Active: %t\r\n📧 Email: %s\r\n🔼 Upload↑: %s\r\n🔽 Download↓: %s\r\n🔄 Total: %s / %s\r\n📅 Expire in: %s\r\n",
+		output := fmt.Sprintf("<b>🔰 وضعیت اکانت : </b>%t\r\n<b>👤 نام اکانت : </b>%s\r\n<b>🔼 حجم آپلود شده↑ : </b>%s\r\n<b>🔽 حجم دانلود شده↓ : </b>%s\r\n<b>🔄 مجموع مصرف : </b>%s / %s\r\n<b>📅 تاریخ انقضا : </b>%s\r\n",
 			traffic.Enable, traffic.Email, common.FormatTraffic(traffic.Up), common.FormatTraffic(traffic.Down), common.FormatTraffic((traffic.Up + traffic.Down)),
 			total, expiryTime)
 		t.SendMsgToTgbot(chatId, output)
 	}
-	t.SendAnswer(chatId, "Please choose:", false)
+	t.SendAnswer(chatId, "<b>♻️ لطفا انتخاب کنید : </b>", false)
 }
 
 func (t *Tgbot) searchClient(chatId int64, email string) {
 	traffics, err := t.inboundService.GetClientTrafficByEmail(email)
 	if err != nil {
 		logger.Warning(err)
-		msg := "❌ Something went wrong!"
+		msg := "‼️ خطایی رخ داد!"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	if len(traffics) == 0 {
-		msg := "No result!"
+		msg := "<b>👀 چیزی پیدا نشد!</b>"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	for _, traffic := range traffics {
 		expiryTime := ""
 		if traffic.ExpiryTime == 0 {
-			expiryTime = "♾Unlimited"
+			expiryTime = "♾ نامحدود"
 		} else if traffic.ExpiryTime < 0 {
-			expiryTime = fmt.Sprintf("%d days", traffic.ExpiryTime/-86400000)
+			expiryTime = fmt.Sprintf("%d روز", traffic.ExpiryTime/-86400000)
 		} else {
 			expiryTime = time.Unix((traffic.ExpiryTime / 1000), 0).Format("2006-01-02 15:04:05")
 		}
 		total := ""
 		if traffic.Total == 0 {
-			total = "♾Unlimited"
+			total = "♾ نامحدود"
 		} else {
 			total = common.FormatTraffic((traffic.Total))
 		}
-		output := fmt.Sprintf("💡 Active: %t\r\n📧 Email: %s\r\n🔼 Upload↑: %s\r\n🔽 Download↓: %s\r\n🔄 Total: %s / %s\r\n📅 Expire in: %s\r\n",
+		output := fmt.Sprintf("<b>🔰 وضعیت اکانت : </b>%t\r\n<b>👤 نام اکانت : </b>%s\r\n<b>🔼 حجم آپلود شده↑ : </b>%s\r\n<b>🔽 حجم دانلود شده↓ : </b>%s\r\n<b>🔄 مجموع مصرف : </b>%s / %s\r\n<b>📅 تاریخ انقضا : </b>%s\r\n",
 			traffic.Enable, traffic.Email, common.FormatTraffic(traffic.Up), common.FormatTraffic(traffic.Down), common.FormatTraffic((traffic.Up + traffic.Down)),
 			total, expiryTime)
 		t.SendMsgToTgbot(chatId, output)
@@ -442,36 +442,36 @@ func (t *Tgbot) searchInbound(chatId int64, remark string) {
 	inbouds, err := t.inboundService.SearchInbounds(remark)
 	if err != nil {
 		logger.Warning(err)
-		msg := "❌ Something went wrong!"
+		msg := "‼️ خطایی رخ داد!"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	for _, inbound := range inbouds {
 		info := ""
-		info += fmt.Sprintf("📍Inbound:%s\r\nPort:%d\r\n", inbound.Remark, inbound.Port)
-		info += fmt.Sprintf("Traffic: %s (↑%s,↓%s)\r\n", common.FormatTraffic((inbound.Up + inbound.Down)), common.FormatTraffic(inbound.Up), common.FormatTraffic(inbound.Down))
+		info += fmt.Sprintf("<b>📍اسم سرویس : </b>%s\r\n<b>🔢 پورت : </b>%d\r\n", inbound.Remark, inbound.Port)
+		info += fmt.Sprintf("<b>📍اسم سرویس : </b>%s\r\n<b>🔢 پورت : </b>%d\r\n<b>🧮 کل حجم مصرفی : </b>%s (↑%s,↓%s)\r\n", inbound.Remark, inbound.Port, common.FormatTraffic((inbound.Up + inbound.Down)), common.FormatTraffic(inbound.Up), common.FormatTraffic(inbound.Down))
 		if inbound.ExpiryTime == 0 {
-			info += "Expire date: ♾ Unlimited\r\n \r\n"
+			info += "<b>📅 تاریخ انقضا : ♾ نامحدود </b>\r\n \r\n"
 		} else {
-			info += fmt.Sprintf("Expire date:%s\r\n \r\n", time.Unix((inbound.ExpiryTime/1000), 0).Format("2006-01-02 15:04:05"))
+			info += fmt.Sprintf("<b>📅 تاریخ انقضا : </b>%s\r\n \r\n", time.Unix((inbound.ExpiryTime/1000), 0).Format("2006-01-02 15:04:05"))
 		}
 		t.SendMsgToTgbot(chatId, info)
 		for _, traffic := range inbound.ClientStats {
 			expiryTime := ""
 			if traffic.ExpiryTime == 0 {
-				expiryTime = "♾Unlimited"
+				expiryTime = "♾ نامحدود"
 			} else if traffic.ExpiryTime < 0 {
-				expiryTime = fmt.Sprintf("%d days", traffic.ExpiryTime/-86400000)
+				expiryTime = fmt.Sprintf("%d روز", traffic.ExpiryTime/-86400000)
 			} else {
 				expiryTime = time.Unix((traffic.ExpiryTime / 1000), 0).Format("2006-01-02 15:04:05")
 			}
 			total := ""
 			if traffic.Total == 0 {
-				total = "♾Unlimited"
+				total = "♾ نامحدود"
 			} else {
 				total = common.FormatTraffic((traffic.Total))
 			}
-			output := fmt.Sprintf("💡 Active: %t\r\n📧 Email: %s\r\n🔼 Upload↑: %s\r\n🔽 Download↓: %s\r\n🔄 Total: %s / %s\r\n📅 Expire in: %s\r\n",
+			output := fmt.Sprintf("<b>🔰 وضعیت اکانت : </b>%t\r\n<b>👤 نام اکانت : </b>%s\r\n<b>🔼 حجم آپلود شده↑ : </b>%s\r\n<b>🔽 حجم دانلود شده↓ : </b>%s\r\n<b>🔄 مجموع مصرف : </b>%s / %s\r\n<b>📅 تاریخ انقضا : </b>%s\r\n",
 				traffic.Enable, traffic.Email, common.FormatTraffic(traffic.Up), common.FormatTraffic(traffic.Down), common.FormatTraffic((traffic.Up + traffic.Down)),
 				total, expiryTime)
 			t.SendMsgToTgbot(chatId, output)
@@ -483,30 +483,30 @@ func (t *Tgbot) searchForClient(chatId int64, query string) {
 	traffic, err := t.inboundService.SearchClientTraffic(query)
 	if err != nil {
 		logger.Warning(err)
-		msg := "❌ Something went wrong!"
+		msg := "‼️ خطایی رخ داد!"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	if traffic == nil {
-		msg := "No result!"
+		msg := "<b>👀 چیزی پیدا نشد!</b>"
 		t.SendMsgToTgbot(chatId, msg)
 		return
 	}
 	expiryTime := ""
 	if traffic.ExpiryTime == 0 {
-		expiryTime = "♾Unlimited"
+		expiryTime = "♾ نامحدود"
 	} else if traffic.ExpiryTime < 0 {
-		expiryTime = fmt.Sprintf("%d days", traffic.ExpiryTime/-86400000)
+		expiryTime = fmt.Sprintf("%d روز", traffic.ExpiryTime/-86400000)
 	} else {
 		expiryTime = time.Unix((traffic.ExpiryTime / 1000), 0).Format("2006-01-02 15:04:05")
 	}
 	total := ""
 	if traffic.Total == 0 {
-		total = "♾Unlimited"
+		total = "♾ نامحدود"
 	} else {
 		total = common.FormatTraffic((traffic.Total))
 	}
-	output := fmt.Sprintf("💡 Active: %t\r\n📧 Email: %s\r\n🔼 Upload↑: %s\r\n🔽 Download↓: %s\r\n🔄 Total: %s / %s\r\n📅 Expire in: %s\r\n",
+	output := fmt.Sprintf("<b>🔰 وضعیت اکانت : </b>%t\r\n<b>👤 نام اکانت : </b>%s\r\n<b>🔼 حجم آپلود شده↑ : </b>%s\r\n<b>🔽 حجم دانلود شده↓ : </b>%s\r\n<b>🔄 مجموع مصرف : </b>%s / %s\r\n<b>📅 تاریخ انقضا : </b>%s\r\n",
 		traffic.Enable, traffic.Email, common.FormatTraffic(traffic.Up), common.FormatTraffic(traffic.Down), common.FormatTraffic((traffic.Up + traffic.Down)),
 		total, expiryTime)
 	t.SendMsgToTgbot(chatId, output)
@@ -531,7 +531,7 @@ func (t *Tgbot) getExhausted() string {
 	}
 	inbounds, err := t.inboundService.GetAllInbounds()
 	if err != nil {
-		logger.Warning("Unable to load Inbounds", err)
+		logger.Warning("❌ خطا در آپلود لیست سرویس ها", err)
 	}
 	for _, inbound := range inbounds {
 		if inbound.Enable {
@@ -555,37 +555,37 @@ func (t *Tgbot) getExhausted() string {
 			disabledInbounds = append(disabledInbounds, *inbound)
 		}
 	}
-	output += fmt.Sprintf("Exhausted Inbounds count:\r\n🛑 Disabled: %d\r\n🔜 Deplete soon: %d\r\n \r\n", len(disabledInbounds), len(exhaustedInbounds))
+	output += fmt.Sprintf("<b>🔍 آمار کل سرویس ها : </b>\r\n<b>🛑 تعداد غیرفعال : </b>%d\r\n<b>👤 تعداد اکانت ها : </b>%d\r\n \r\n", len(disabledInbounds), len(exhaustedInbounds))
 	if len(exhaustedInbounds) > 0 {
-		output += "Exhausted Inbounds:\r\n"
+		output += "📚 لیست سرویس ها : \r\n"
 		for _, inbound := range exhaustedInbounds {
-			output += fmt.Sprintf("📍Inbound:%s\r\nPort:%d\r\nTraffic: %s (↑%s,↓%s)\r\n", inbound.Remark, inbound.Port, common.FormatTraffic((inbound.Up + inbound.Down)), common.FormatTraffic(inbound.Up), common.FormatTraffic(inbound.Down))
+			output += fmt.Sprintf("<b>📍اسم سرویس : </b>%s\r\n<b>🔢 پورت : </b>%d\r\n<b>🧮 کل حجم مصرفی : </b>%s (↑%s,↓%s)\r\n", inbound.Remark, inbound.Port, common.FormatTraffic((inbound.Up + inbound.Down)), common.FormatTraffic(inbound.Up), common.FormatTraffic(inbound.Down))
 			if inbound.ExpiryTime == 0 {
-				output += "Expire date: ♾Unlimited\r\n \r\n"
+				output += "<b>📅 تاریخ انقضا : ♾ نامحدود </b>\r\n \r\n"
 			} else {
-				output += fmt.Sprintf("Expire date:%s\r\n \r\n", time.Unix((inbound.ExpiryTime/1000), 0).Format("2006-01-02 15:04:05"))
+				output += fmt.Sprintf("<b>📅 تاریخ انقضا : </b>%s\r\n \r\n", time.Unix((inbound.ExpiryTime/1000), 0).Format("2006-01-02 15:04:05"))
 			}
 		}
 	}
-	output += fmt.Sprintf("Exhausted Clients count:\r\n🛑 Exhausted: %d\r\n🔜 Deplete soon: %d\r\n \r\n", len(disabledClients), len(exhaustedClients))
+	output += fmt.Sprintf("<b>🔍 آمار کل کاربران : </b>\r\n<b>🛑 تعداد غیرفعال : </b>%d\r\n<b>👤 تعداد اکانت ها : </b>%d\r\n \r\n", len(disabledClients), len(exhaustedClients))
 	if len(exhaustedClients) > 0 {
-		output += "Exhausted Clients:\r\n"
+		output += "<b>📝 لیست کاربران : </b>\r\n"
 		for _, traffic := range exhaustedClients {
 			expiryTime := ""
 			if traffic.ExpiryTime == 0 {
-				expiryTime = "♾Unlimited"
+				expiryTime = "♾ نامحدود"
 			} else if traffic.ExpiryTime < 0 {
-				expiryTime += fmt.Sprintf("%d days", traffic.ExpiryTime/-86400000)
+				expiryTime += fmt.Sprintf("%d روز", traffic.ExpiryTime/-86400000)
 			} else {
 				expiryTime = time.Unix((traffic.ExpiryTime / 1000), 0).Format("2006-01-02 15:04:05")
 			}
 			total := ""
 			if traffic.Total == 0 {
-				total = "♾Unlimited"
+				total = "♾ نامحدود"
 			} else {
 				total = common.FormatTraffic((traffic.Total))
 			}
-			output += fmt.Sprintf("💡 Active: %t\r\n📧 Email: %s\r\n🔼 Upload↑: %s\r\n🔽 Download↓: %s\r\n🔄 Total: %s / %s\r\n📅 Expire date: %s\r\n \r\n",
+			output += fmt.Sprintf("<b>🔰 وضعیت اکانت : </b>%t\r\n<b>👤 نام اکانت : </b>%s\r\n<b>🔼 حجم آپلود شده↑ : </b>%s\r\n<b>🔽 حجم دانلود شده↓ : </b>%s\r\n<b>🔄 مجموع مصرف : </b>%s / %s\r\n<b>📅 تاریخ انقضا : </b>%s\r\n",
 				traffic.Enable, traffic.Email, common.FormatTraffic(traffic.Up), common.FormatTraffic(traffic.Down), common.FormatTraffic((traffic.Up + traffic.Down)),
 				total, expiryTime)
 		}
@@ -596,17 +596,17 @@ func (t *Tgbot) getExhausted() string {
 
 func (t *Tgbot) sendBackup(chatId int64) {
 	sendingTime := time.Now().Format("2006-01-02 15:04:05")
-	t.SendMsgToTgbot(chatId, "Backup time: "+sendingTime)
+	t.SendMsgToTgbot(chatId, "<b>🕰 تایم بکاپ : </b>"+sendingTime)
 	file := tgbotapi.FilePath(config.GetDBPath())
 	msg := tgbotapi.NewDocument(chatId, file)
 	_, err := bot.Send(msg)
 	if err != nil {
-		logger.Warning("Error in uploading backup: ", err)
+		logger.Warning("<b>❌ خطایی در آپلود دیتابیس رخ داد!</b>", err)
 	}
 	file = tgbotapi.FilePath(xray.GetConfigPath())
 	msg = tgbotapi.NewDocument(chatId, file)
 	_, err = bot.Send(msg)
 	if err != nil {
-		logger.Warning("Error in uploading config.json: ", err)
+		logger.Warning("<b>❌ خطایی در آپلود config.json رخ داد!</b>", err)
 	}
 }
