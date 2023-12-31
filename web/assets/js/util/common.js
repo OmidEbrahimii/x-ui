@@ -33,13 +33,15 @@ function safeBase64(str) {
 
 function formatSecond(second) {
     if (second < 60) {
-        return second.toFixed(0) + ' s';
+        return second.toFixed(0) + 's';
     } else if (second < 3600) {
-        return (second / 60).toFixed(0) + ' m';
+        return (second / 60).toFixed(0) + 'm';
     } else if (second < 3600 * 24) {
-        return (second / 3600).toFixed(0) + ' h';
+        return (second / 3600).toFixed(0) + 'h';
     } else {
-        return (second / 3600 / 24).toFixed(0) + ' d';
+        day = Math.floor(second / 3600 / 24);
+        remain = ((second/3600) - (day*24)).toFixed(0);
+        return day + 'd' + (remain > 0 ? ' ' + remain + 'h' : '');
     }
 }
 
@@ -53,7 +55,7 @@ function addZero(num) {
 
 function toFixed(num, n) {
     n = Math.pow(10, n);
-    return Math.round(num * n) / n;
+    return Math.floor(num * n) / n;
 }
 
 function debounce(fn, delay) {
@@ -94,15 +96,52 @@ function setCookie(cname, cvalue, exdays) {
 function usageColor(data, threshold, total) {
     switch (true) {
         case data === null:
+            return "green";
+        case total < 0:
             return "blue";
-        case total <= 0:
-            return "blue";
+        case total == 0:
+            return "purple";
         case data < total - threshold:
-            return "cyan";
+            return "blue";
         case data < total:
             return "orange";
         default:
             return "red";
+    }
+}
+
+function clientUsageColor(clientStats, trafficDiff) {
+    switch (true) {
+        case !clientStats || clientStats.total == 0:
+            return "#7a316f"; // Purple
+        case clientStats.up + clientStats.down < clientStats.total - trafficDiff:
+            return "#0e49b5"; // Blue
+        case clientStats.up + clientStats.down < clientStats.total:
+            return "#f37b24"; // Orange
+        default:
+            return "#e04141"; // red
+    }
+}
+
+function userExpiryColor(threshold, client, isDark = false) {
+    if (!client.enable) {
+        return isDark ? '#2c3950' : '#bcbcbc';  // Gray
+    }
+    now = new Date().getTime(),
+    expiry = client.expiryTime;
+    switch (true) {
+        case expiry === null:
+            return "#7a316f"; // Purple
+        case expiry < 0:
+            return "#0e49b5"; // Blue
+        case expiry == 0:
+            return "#7a316f"; // Purple
+        case now < expiry - threshold:
+            return "#0e49b5"; // Blue
+        case now < expiry:
+            return "#f37b24"; // Orange
+        default:
+            return "#e04141"; // red
     }
 }
 

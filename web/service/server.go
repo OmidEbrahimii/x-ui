@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 	"x-ui/config"
@@ -38,9 +39,10 @@ const (
 )
 
 type Status struct {
-	T   time.Time `json:"-"`
-	Cpu float64   `json:"cpu"`
-	Mem struct {
+	T        time.Time `json:"-"`
+	Cpu      float64   `json:"cpu"`
+	CpuCount int       `json:"cpuCount"`
+	Mem      struct {
 		Current uint64 `json:"current"`
 		Total   uint64 `json:"total"`
 	} `json:"mem"`
@@ -69,6 +71,16 @@ type Status struct {
 		Sent uint64 `json:"sent"`
 		Recv uint64 `json:"recv"`
 	} `json:"netTraffic"`
+	AppStats struct {
+		Threads uint32 `json:"threads"`
+		Mem     uint64 `json:"mem"`
+		Uptime  uint64 `json:"uptime"`
+	} `json:"appStats"`
+	HostInfo struct {
+		HostName string `json:"hostname"`
+		Ipv4     string `json:"ipv4"`
+		Ipv6     string `json:"ipv6"`
+	} `json:"hostInfo"`
 }
 
 type Release struct {
@@ -174,6 +186,36 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 		status.Xray.ErrorMsg = s.xrayService.GetXrayResult()
 	}
 	status.Xray.Version = s.xrayService.GetXrayVersion()
+
+	var rtm runtime.MemStats
+	runtime.ReadMemStats(&rtm)
+
+	status.AppStats.Mem = rtm.Sys
+	status.AppStats.Threads = uint32(runtime.NumGoroutine())
+	status.CpuCount = runtime.NumCPU()
+	if p != nil && p.IsRunning() {
+		status.AppStats.Uptime = p.GetUptime()
+	} else {
+		status.AppStats.Uptime = 0
+	}
+
+	status.HostInfo.HostName, _ = os.Hostname()
+
+	// get ip address
+	netInterfaces, _ := net.Interfaces()
+	for i := 0; i < len(netInterfaces); i++ {
+		if len(netInterfaces[i].Flags) > 2 && netInterfaces[i].Flags[0] == "up" && netInterfaces[i].Flags[1] != "loopback" {
+			addrs := netInterfaces[i].Addrs
+
+			for _, address := range addrs {
+				if strings.Contains(address.Addr, ".") {
+					status.HostInfo.Ipv4 += address.Addr + " "
+				} else if address.Addr[0:6] != "fe80::" {
+					status.HostInfo.Ipv6 += address.Addr + " "
+				}
+			}
+		}
+	}
 
 	return status
 }
@@ -321,58 +363,45 @@ func (s *ServerService) UpdateXray(version string) error {
 	if err != nil {
 		return err
 	}
-	err = copyZipFile("geosite.dat", xray.GetGeositePath())
-	if err != nil {
-		return err
-	}
-	err = copyZipFile("geoip.dat", xray.GetGeoipPath())
-	if err != nil {
-		return err
-	}
 
 	return nil
 
 }
 
-func (s *ServerService) GetLogs(count string) ([]string, error) {
-	// Define the journalctl command and its arguments
-	var cmdArgs []string
-	if runtime.GOOS == "linux" {
-		cmdArgs = []string{"journalctl", "-u", "x-ui", "--no-pager", "-n", count}
+func (s *ServerService) GetLogs(count string, level string, syslog string) []string {
+	c, _ := strconv.Atoi(count)
+	var lines []string
+
+	if syslog == "true" {
+		cmdArgs := []string{"journalctl", "-u", "x-ui", "--no-pager", "-n", count, "-p", level}
+		// Run the command
+		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		err := cmd.Run()
+		if err != nil {
+			return []string{"Failed to run journalctl command!"}
+		}
+		lines = strings.Split(out.String(), "\n")
 	} else {
-		return []string{"Unsupported operating system"}, nil
+		lines = logger.GetLogs(c, level)
 	}
 
-	// Run the command
-	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return nil, err
-	}
-
-	lines := strings.Split(out.String(), "\n")
-
-	return lines, nil
+	return lines
 }
 
 func (s *ServerService) GetConfigJson() (interface{}, error) {
-	// Open the file for reading
-	file, err := os.Open(xray.GetConfigPath())
+	config, err := s.xrayService.GetXrayConfig()
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-
-	// Read the file contents
-	fileContents, err := io.ReadAll(file)
+	contents, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return nil, err
 	}
 
 	var jsonData interface{}
-	err = json.Unmarshal(fileContents, &jsonData)
+	err = json.Unmarshal(contents, &jsonData)
 	if err != nil {
 		return nil, err
 	}
@@ -381,6 +410,11 @@ func (s *ServerService) GetConfigJson() (interface{}, error) {
 }
 
 func (s *ServerService) GetDb() ([]byte, error) {
+	// Update by manually trigger a checkpoint operation
+	err := database.Checkpoint()
+	if err != nil {
+		return nil, err
+	}
 	// Open the file for reading
 	file, err := os.Open(config.GetDBPath())
 	if err != nil {

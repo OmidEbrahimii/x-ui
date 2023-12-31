@@ -1,11 +1,10 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"x-ui/database/model"
-	"x-ui/logger"
-	"x-ui/web/global"
 	"x-ui/web/service"
 	"x-ui/web/session"
 
@@ -20,7 +19,6 @@ type InboundController struct {
 func NewInboundController(g *gin.RouterGroup) *InboundController {
 	a := &InboundController{}
 	a.initRouter(g)
-	a.startTask()
 	return a
 }
 
@@ -38,20 +36,8 @@ func (a *InboundController) initRouter(g *gin.RouterGroup) {
 	g.POST("/resetAllTraffics", a.resetAllTraffics)
 	g.POST("/resetAllClientTraffics/:id", a.resetAllClientTraffics)
 	g.POST("/delDepletedClients/:id", a.delDepletedClients)
-
-}
-
-func (a *InboundController) startTask() {
-	webServer := global.GetWebServer()
-	c := webServer.GetCron()
-	c.AddFunc("@every 10s", func() {
-		if a.xrayService.IsNeedRestartAndSetFalse() {
-			err := a.xrayService.RestartXray(false)
-			if err != nil {
-				logger.Error("restart xray failed:", err)
-			}
-		}
-	})
+	g.POST("/import", a.importInbound)
+	g.POST("/onlines", a.onlines)
 }
 
 func (a *InboundController) getInbounds(c *gin.Context) {
@@ -96,11 +82,12 @@ func (a *InboundController) addInbound(c *gin.Context) {
 	}
 	user := session.GetLoginUser(c)
 	inbound.UserId = user.Id
-	inbound.Enable = true
 	inbound.Tag = fmt.Sprintf("inbound-%v", inbound.Port)
-	inbound, err = a.inboundService.AddInbound(inbound)
+
+	needRestart := false
+	inbound, needRestart, err = a.inboundService.AddInbound(inbound)
 	jsonMsgObj(c, I18nWeb(c, "pages.inbounds.create"), inbound, err)
-	if err == nil {
+	if err == nil && needRestart {
 		a.xrayService.SetToNeedRestart()
 	}
 }
@@ -111,9 +98,10 @@ func (a *InboundController) delInbound(c *gin.Context) {
 		jsonMsg(c, I18nWeb(c, "delete"), err)
 		return
 	}
-	err = a.inboundService.DelInbound(id)
+	needRestart := true
+	needRestart, err = a.inboundService.DelInbound(id)
 	jsonMsgObj(c, I18nWeb(c, "delete"), id, err)
-	if err == nil {
+	if err == nil && needRestart {
 		a.xrayService.SetToNeedRestart()
 	}
 }
@@ -132,9 +120,10 @@ func (a *InboundController) updateInbound(c *gin.Context) {
 		jsonMsg(c, I18nWeb(c, "pages.inbounds.update"), err)
 		return
 	}
-	inbound, err = a.inboundService.UpdateInbound(inbound)
+	needRestart := true
+	inbound, needRestart, err = a.inboundService.UpdateInbound(inbound)
 	jsonMsgObj(c, I18nWeb(c, "pages.inbounds.update"), inbound, err)
-	if err == nil {
+	if err == nil && needRestart {
 		a.xrayService.SetToNeedRestart()
 	}
 }
@@ -147,7 +136,7 @@ func (a *InboundController) addInboundClient(c *gin.Context) {
 		return
 	}
 
-	needRestart := false
+	needRestart := true
 
 	needRestart, err = a.inboundService.AddInboundClient(data)
 	if err != nil {
@@ -168,7 +157,7 @@ func (a *InboundController) delInboundClient(c *gin.Context) {
 	}
 	clientId := c.Param("clientId")
 
-	needRestart := false
+	needRestart := true
 
 	needRestart, err = a.inboundService.DelInboundClient(id, clientId)
 	if err != nil {
@@ -191,7 +180,7 @@ func (a *InboundController) updateInboundClient(c *gin.Context) {
 		return
 	}
 
-	needRestart := false
+	needRestart := true
 
 	needRestart, err = a.inboundService.UpdateInboundClient(inbound, clientId)
 	if err != nil {
@@ -212,7 +201,7 @@ func (a *InboundController) resetClientTraffic(c *gin.Context) {
 	}
 	email := c.Param("email")
 
-	needRestart := false
+	needRestart := true
 
 	needRestart, err = a.inboundService.ResetClientTraffic(id, email)
 	if err != nil {
@@ -265,4 +254,33 @@ func (a *InboundController) delDepletedClients(c *gin.Context) {
 		return
 	}
 	jsonMsg(c, "All delpeted clients are deleted", nil)
+}
+
+func (a *InboundController) importInbound(c *gin.Context) {
+	inbound := &model.Inbound{}
+	err := json.Unmarshal([]byte(c.PostForm("data")), inbound)
+	if err != nil {
+		jsonMsg(c, "Something went wrong!", err)
+		return
+	}
+	user := session.GetLoginUser(c)
+	inbound.Id = 0
+	inbound.UserId = user.Id
+	inbound.Tag = fmt.Sprintf("inbound-%v", inbound.Port)
+
+	for index := range inbound.ClientStats {
+		inbound.ClientStats[index].Id = 0
+		inbound.ClientStats[index].Enable = true
+	}
+
+	needRestart := false
+	inbound, needRestart, err = a.inboundService.AddInbound(inbound)
+	jsonMsgObj(c, I18nWeb(c, "pages.inbounds.create"), inbound, err)
+	if err == nil && needRestart {
+		a.xrayService.SetToNeedRestart()
+	}
+}
+
+func (a *InboundController) onlines(c *gin.Context) {
+	jsonObj(c, a.inboundService.GetOnlineClinets(), nil)
 }

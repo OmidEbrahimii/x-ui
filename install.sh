@@ -113,7 +113,6 @@ config_after_install() {
 }
 
 install_x-ui() {
-    systemctl stop x-ui
     cd /usr/local/
 
     if [ $# == 0 ]; then
@@ -140,6 +139,7 @@ install_x-ui() {
     fi
 
     if [[ -e /usr/local/x-ui/ ]]; then
+        systemctl stop x-ui
         rm /usr/local/x-ui/ -rf
     fi
 
@@ -163,21 +163,22 @@ install_x-ui() {
     systemctl start x-ui
     echo -e "${green}x-ui v${last_version}${plain} installation finished, it is up and running now..."
     echo -e ""
-    echo -e "x-ui control menu usages: "
-    echo -e "----------------------------------------------"
-    echo -e "x-ui              - Enter     Admin menu"
-    echo -e "x-ui start        - Start     x-ui"
-    echo -e "x-ui stop         - Stop      x-ui"
-    echo -e "x-ui restart      - Restart   x-ui"
-    echo -e "x-ui status       - Show      x-ui status"
-    echo -e "x-ui enable       - Enable    x-ui on system startup"
-    echo -e "x-ui disable      - Disable   x-ui on system startup"
-    echo -e "x-ui log          - Check     x-ui logs"
-    echo -e "x-ui v2-ui        - Migrate   v2-ui Account data to x-ui"
-    echo -e "x-ui update       - Update    x-ui"
-    echo -e "x-ui install      - Install   x-ui"
-    echo -e "x-ui uninstall    - Uninstall x-ui"
-    echo -e "----------------------------------------------"
+    echo "X-UI Control Menu Usage"
+    echo "------------------------------------------"
+    echo "SUBCOMMANDS:" 
+    echo "x-ui              - Admin Management Script"
+    echo "x-ui start        - Start"
+    echo "x-ui stop         - Stop"
+    echo "x-ui restart      - Restart"
+    echo "x-ui status       - Current Status"
+    echo "x-ui enable       - Enable Autostart on OS Startup"
+    echo "x-ui disable      - Disable Autostart on OS Startup"
+    echo "x-ui log          - Check Logs"
+    echo "x-ui update       - Update"
+    echo "x-ui install      - Install"
+    echo "x-ui uninstall    - Uninstall"
+    echo "x-ui help         - Control Menu Usage"
+    echo "------------------------------------------"
 }
 
 echo -e "${green}Excuting...${plain}"

@@ -27,9 +27,10 @@ func (a *SUBController) initRouter(g *gin.RouterGroup) {
 
 func (a *SUBController) subs(c *gin.Context) {
 	subEncrypt, _ := a.settingService.GetSubEncrypt()
+	subShowInfo, _ := a.settingService.GetSubShowInfo()
 	subId := c.Param("subid")
 	host := strings.Split(c.Request.Host, ":")[0]
-	subs, headers, err := a.subService.GetSubs(subId, host)
+	subs, headers, err := a.subService.GetSubs(subId, host, subShowInfo)
 	if err != nil || len(subs) == 0 {
 		c.String(400, "Error!")
 	} else {

@@ -23,6 +23,7 @@ import (
 	"x-ui/web/network"
 	"x-ui/web/service"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -174,6 +175,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	if err != nil {
 		return nil, err
 	}
+	engine.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{basePath + "xui/API/"})))
 	assetsBasePath := basePath + "assets/"
 
 	store := cookie.NewStore(secret)
@@ -238,14 +240,21 @@ func (s *Server) startTask() {
 	// Check whether xray is running every 30 seconds
 	s.cron.AddJob("@every 30s", job.NewCheckXrayRunningJob())
 
+	// Check if xray needs to be restarted
+	s.cron.AddFunc("@every 10s", func() {
+		if s.xrayService.IsNeedRestartAndSetFalse() {
+			err := s.xrayService.RestartXray(false)
+			if err != nil {
+				logger.Error("restart xray failed:", err)
+			}
+		}
+	})
+
 	go func() {
 		time.Sleep(time.Second * 5)
 		// Statistics every 10 seconds, start the delay for 5 seconds for the first time, and staggered with the time to restart xray
 		s.cron.AddJob("@every 10s", job.NewXrayTrafficJob())
 	}()
-
-	// Check the inbound traffic every 30 seconds that the traffic exceeds and expires
-	s.cron.AddJob("@every 30s", job.NewCheckInboundJob())
 
 	// Make a traffic condition every day, 8:30
 	var entry cron.EntryID
@@ -347,7 +356,7 @@ func (s *Server) Start() (err error) {
 	isTgbotenabled, err := s.settingService.GetTgbotenabled()
 	if (err == nil) && (isTgbotenabled) {
 		tgBot := s.tgbotService.NewTgbot()
-		tgBot.Start(i18nFS)
+		go tgBot.Start(i18nFS)
 	}
 
 	return nil

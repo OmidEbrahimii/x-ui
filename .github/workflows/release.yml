@@ -10,11 +10,11 @@ jobs:
     name: build x-ui amd64 version
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: '1.21'
       - name: build linux amd64 version
         run: |
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o xui-release -v main.go
@@ -26,19 +26,20 @@ jobs:
           mv xui-release x-ui
           mkdir bin
           cd bin
-          wget https://github.com/XTLS/Xray-core/releases/download/v1.8.1/Xray-linux-64.zip
+          wget https://github.com/XTLS/Xray-core/releases/download/v1.8.6/Xray-linux-64.zip
           unzip Xray-linux-64.zip
-          rm -f Xray-linux-64.zip geoip.dat geosite.dat iran.dat
+          rm -f Xray-linux-64.zip geoip.dat geosite.dat LICENSE README.md
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-          wget https://github.com/bootmortis/iran-hosted-domains/releases/latest/download/iran.dat
+          wget -O geoip_IR.dat https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geoip.dat
+          wget -O geosite_IR.dat https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat
           mv xray xray-linux-amd64
           cd ..
           cd ..
       - name: package
         run: tar -zcvf x-ui-linux-amd64.tar.gz x-ui
       - name: upload
-        uses: svenstaro/upload-release-action@2.6.1
+        uses: svenstaro/upload-release-action@2.7.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
@@ -49,11 +50,11 @@ jobs:
     name: build x-ui arm64 version
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - name: build linux arm64 version
         run: |
           sudo apt-get update
@@ -67,19 +68,20 @@ jobs:
           mv xui-release x-ui
           mkdir bin
           cd bin
-          wget https://github.com/xtls/xray-core/releases/download/v1.8.1/Xray-linux-arm64-v8a.zip
+          wget https://github.com/xtls/xray-core/releases/download/v1.8.6/Xray-linux-arm64-v8a.zip
           unzip Xray-linux-arm64-v8a.zip
-          rm -f Xray-linux-64.zip geoip.dat geosite.dat iran.dat
+          rm -f Xray-linux-arm64-v8a.zip geoip.dat geosite.dat LICENSE README.md
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-          wget https://github.com/bootmortis/iran-hosted-domains/releases/latest/download/iran.dat
+          wget -O geoip_IR.dat https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geoip.dat
+          wget -O geosite_IR.dat https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat
           mv xray xray-linux-arm64
           cd ..
           cd ..
       - name: package
         run: tar -zcvf x-ui-linux-arm64.tar.gz x-ui
       - name: upload
-        uses: svenstaro/upload-release-action@2.6.1
+        uses: svenstaro/upload-release-action@2.7.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
@@ -90,11 +92,11 @@ jobs:
     name: build x-ui s390x version
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - name: build linux s390x version
         run: |
           sudo apt-get update
@@ -108,19 +110,20 @@ jobs:
           mv xui-release x-ui
           mkdir bin
           cd bin
-          wget https://github.com/xtls/xray-core/releases/download/v1.8.1/Xray-linux-s390x.zip
+          wget https://github.com/xtls/xray-core/releases/download/v1.8.6/Xray-linux-s390x.zip
           unzip Xray-linux-s390x.zip
-          rm -f Xray-linux-64.zip geoip.dat geosite.dat iran.dat
+          rm -f Xray-linux-s390x.zip geoip.dat geosite.dat LICENSE README.md
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-          wget https://github.com/bootmortis/iran-hosted-domains/releases/latest/download/iran.dat
+          wget -O geoip_IR.dat https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geoip.dat
+          wget -O geosite_IR.dat https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat
           mv xray xray-linux-s390x
           cd ..
           cd ..
       - name: package
         run: tar -zcvf x-ui-linux-s390x.tar.gz x-ui
       - name: upload
-        uses: svenstaro/upload-release-action@2.6.1
+        uses: svenstaro/upload-release-action@2.7.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
